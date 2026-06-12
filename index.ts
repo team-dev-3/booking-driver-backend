@@ -15,7 +15,8 @@ connectDB()
 
 //Cấu hình cors
 app.use(cors({
-    origin: "*", //có thể diền 1 tên miền
+    origin: "http://localhost:3000", //phải diền 1 tên miền cụ thể
+    credentials: true, //Cho phép gửi cookie
     methods: ["GET", "POST", "PATCH", "DELETE"],  //các phương thức được phép,
     allowedHeaders: ['Content-Type', 'Authorization']
 }))

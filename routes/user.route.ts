@@ -6,4 +6,6 @@ const router = Router()
 
 router.post("/register", userValidate.registerPost, userController.RegisterPost)
 
+router.post("/login", userValidate.loginPost, userController.LoginPost)
+
 export default router
