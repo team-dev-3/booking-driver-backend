@@ -3,6 +3,7 @@ import cors from "cors"
 import routes from "./routes/index.route"
 import dotenv from "dotenv"
 import { connectDB } from "./config/database"
+import cookieParser from "cookie-parser"
 
 const app = express()
 const port = 8000
@@ -23,6 +24,9 @@ app.use(cors({
 
 //cho phép gửi data lên dạng json
 app.use(express.json())
+
+//cấu hình cho phép lấy được cookie
+app.use(cookieParser())
 
 //thiết lập đường dẫn
 app.use("/", routes)
