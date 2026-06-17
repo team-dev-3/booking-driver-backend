@@ -118,26 +118,11 @@ export const profilePatch = (req: Request, res: Response, next: NextFunction) =>
     fullName: Joi.string()
       .required()
       .min(5)
-      .max(50)
-      .messages({
-        "string.empty": "Vui lòng nhập họ tên!",
-        "string.min": "Họ tên phải có ít nhất 5 ký tự!",
-        "string.max": "Họ tên không được vượt quá 50 ký tự!"
-      }),
+      .max(50),
     email: Joi.string()
       .required()
-      .email()
-      .messages({
-        "string.empty": "Vui lòng nhập email!",
-        "string.email": "Email không đúng định dạng!"
-      }),
-    phone: Joi.string()
-      .allow("")
-      .pattern(/^(?:\+84|84|0)(?:3|5|7|8|9)\d{8}$/)
-      .messages({
-        "string.pattern.base": "Số điện thoại không đúng định dạng!"
-      })
-  }).options({ allowUnknown: true }) // cho phép các field khác ko validate
+      .email(),
+  }).options({ allowUnknown: true }) // cho phép các field khác như avatar (do Multer xử lý)
 
   const { error } = schema.validate(req.body);
 
@@ -145,7 +130,7 @@ export const profilePatch = (req: Request, res: Response, next: NextFunction) =>
     const errorMessage = error.details[0].message;
 
     res.json({
-      code: "error",
+      code: "validation_error",
       message: errorMessage
     });
     return;
