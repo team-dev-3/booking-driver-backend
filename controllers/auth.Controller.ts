@@ -25,7 +25,9 @@ export const check = async (req: Request, res: Response) => {
             const infoUser = {
                 id: existAccountUser.id,
                 email: existAccountUser.email,
-                fullName: existAccountUser.fullName
+                fullName: existAccountUser.fullName,
+                avatar: existAccountUser.avatar,
+                phone: existAccountUser.phone
             }
             res.json({
                 code: "success",
