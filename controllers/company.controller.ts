@@ -6,6 +6,7 @@ import { AccountRequest } from "../interface/request.interface"
 import { parse } from "node:path"
 import Job from "../models/job.model"
 import City from "../models/city.model"
+import { match } from "node:assert"
 
 export const registerPost = async (req: Request, res: Response) => {
     const {companyName, email, password} = req.body
@@ -128,9 +129,34 @@ export const createJobPost = async (req: AccountRequest, res: Response) => {
 }
 
 export const listJob = async(req: AccountRequest, res: Response) => {
-    const listJob = await Job.find({
+    const find = {
         companyId: req.account.id
-    })
+    }
+
+    //Phân trang
+    const limitItem = 3
+    let page = 1
+    if(req.query.page){
+        const currentPage = parseInt(`${req.query.page}`)
+        if(currentPage > 0){
+            page = currentPage
+        }
+    }
+
+    const totalItem = await Job.countDocuments(find)
+    const totalPage = Math.ceil(totalItem/limitItem)
+    const skip = (page-1)*limitItem
+    
+    //Hết phân trang    
+
+    const listJob = await Job
+        .find(find)
+        .sort({
+            createdAt: "desc"
+        })
+        .limit(limitItem)
+        .skip(skip)
+
     const city = await City.findOne({
         _id: req.account.city
     })
@@ -153,6 +179,7 @@ export const listJob = async(req: AccountRequest, res: Response) => {
     res.json({
         code: "success",
         message: "Lấy danh sách công việc thành công!",
-        jobs: dataFinal
+        jobs: dataFinal,
+        totalPage: totalPage
     })
 }
