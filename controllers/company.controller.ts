@@ -115,7 +115,7 @@ export const createJobPost = async (req: AccountRequest, res: Response) => {
     req.body.images = []
     if(req.files){
         for(const item of req.files as any[]){
-            req.body.images.push(item)
+            req.body.images.push(item.path)
         }
     }
 
@@ -146,7 +146,7 @@ export const listJob = async(req: AccountRequest, res: Response) => {
     const totalItem = await Job.countDocuments(find)
     const totalPage = Math.ceil(totalItem/limitItem)
     const skip = (page-1)*limitItem
-    
+
     //Hết phân trang    
 
     const listJob = await Job
@@ -182,4 +182,64 @@ export const listJob = async(req: AccountRequest, res: Response) => {
         jobs: dataFinal,
         totalPage: totalPage
     })
+}
+
+export const editJob = async(req: AccountRequest, res: Response) => {
+    try {
+        const id = req.params.id
+        const jobDetail = await Job.findOne({
+            _id: id,
+            companyId: req.account.id
+        })
+        if(!jobDetail){
+            res.json({
+                code: "error",
+                message: "Id không hợp lệ!"
+            })
+            return
+        }
+        res.json({
+            code: "success",
+            message: "Thành công!",
+            jobDetail: jobDetail
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.json({
+            code: "error",
+            message: "Id không hợp lệ!"
+        })
+    }
+}
+
+export const editJobPatch = async(req: AccountRequest, res: Response) => {
+    try {
+        const id = req.params.id 
+        req.body.salaryMin = req.body.salaryMin ? parseInt(req.body.salaryMin) : 0
+        req.body.salaryMax = req.body.salaryMax ? parseInt(req.body.salaryMax) : 0
+        req.body.technologies = req.body.technologies ? req.body.technologies.split(", ") : []
+        req.body.images = []
+
+        if(req.files){
+            for(const item of req.files as any[]){
+                req.body.images.push(item.path)
+            }
+        }
+
+        await Job.updateOne({
+            _id: id,
+            companyId: req.account.id
+        }, req.body)
+        res.json({
+            code: "success",
+            message: "Cập nhật công việc thành công!"
+        })
+    } catch (error) {
+        console.log(error)
+        res.json({
+            code: 'error',
+            message: 'Id không hợp lệ!'
+        })
+    }
 }
