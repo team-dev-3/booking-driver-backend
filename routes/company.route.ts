@@ -28,4 +28,6 @@ router.get("/job/edit/:id", authMiddleWare.verifyTokenCompany, companyController
 
 router.patch("/job/edit/:id", authMiddleWare.verifyTokenCompany, upload.array("images", 8), companyController.editJobPatch)
 
+router.delete("/job/delete/:id", authMiddleWare.verifyTokenCompany, companyController.deleteJobDel)
+
 export default router

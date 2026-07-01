@@ -6,7 +6,6 @@ import { AccountRequest } from "../interface/request.interface"
 import { parse } from "node:path"
 import Job from "../models/job.model"
 import City from "../models/city.model"
-import { match } from "node:assert"
 
 export const registerPost = async (req: Request, res: Response) => {
     const {companyName, email, password} = req.body
@@ -240,6 +239,26 @@ export const editJobPatch = async(req: AccountRequest, res: Response) => {
         res.json({
             code: 'error',
             message: 'Id không hợp lệ!'
+        })
+    }
+}
+
+export const deleteJobDel = async(req: AccountRequest, res: Response) => {
+    try {
+        const id = req.params.id
+        await Job.deleteOne({
+            _id: id,
+            companyId: req.account.id
+        })
+        res.json({
+            code: "success",
+            message: "Xóa công việc thành công!"
+        })
+    } catch (error) {
+        console.log(error)
+        res.json({
+            code: "error",
+            message: "Id không hợp lệ!"
         })
     }
 }
