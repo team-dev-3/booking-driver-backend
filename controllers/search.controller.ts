@@ -4,6 +4,8 @@ import AccountCompany from "../models/account-company.model"
 import City from "../models/city.model"
 export const search = async(req: Request, res: Response) => {
     const dataFinal = []
+    let totalPage = 1
+    let totalRecord = 0
 
     const companyList = await AccountCompany.find({})
     const cityList = await City.find({})
@@ -53,11 +55,27 @@ export const search = async(req: Request, res: Response) => {
         if(req.query.workingForm){
             find.workingForm = req.query.workingForm
         }
+
+        //Phân trang
+        const limitsItem = 3
+        let page = 1
+        if(req.query.page){
+            const currentPage = parseInt(`${req.query.page}`)
+            if(currentPage > 0){
+                page = currentPage
+            }
+        }
+        totalRecord = await Job.countDocuments(find)
+        totalPage = Math.ceil(totalRecord/limitsItem)
+        const skip = (page - 1) * limitsItem
+
         const jobs = await Job
             .find(find)
             .sort({
                 createdAt: "desc"
             })
+            .limit(limitsItem)
+            .skip(skip)
 
         for(const item of jobs){
             const itemFinal = {
@@ -95,6 +113,8 @@ export const search = async(req: Request, res: Response) => {
     res.json({
         code: "success",
         message: "Thành công!",
-        dataFinal: dataFinal
+        dataFinal: dataFinal,
+        totalPage: totalPage,
+        totalRecord: totalRecord
     })
 }
