@@ -2,6 +2,8 @@ import { Request, Response } from "express"
 import Job from "../models/job.model"
 import { title } from "node:process"
 import AccountCompany from "../models/account-company.model"
+import CV from "../models/cv.model"
+
 export const detail = async(req: Request, res: Response) => {
     try {
         const id = req.params.id
@@ -39,7 +41,6 @@ export const detail = async(req: Request, res: Response) => {
         const infoCompany = await AccountCompany.findOne({
             _id: record.companyId
         })
-
         if(infoCompany){
             jobDetail.companyName = `${infoCompany.companyName}`,
             jobDetail.address = `${infoCompany.address}`,
@@ -61,4 +62,23 @@ export const detail = async(req: Request, res: Response) => {
             message: "Thất bại!"
         })
     }
+}
+
+export const applyPost = async(req: Request, res: Response) => {
+    if(!req.file){
+        res.json({
+            code: "error",
+            message: "Vui lòng gửi kèm file CV!"
+        })
+        return
+    }
+    req.body.fileCV = req.file.path
+
+    const newRecord = new CV(req.body)
+    await newRecord.save()
+
+    res.json({
+        code: "success",
+        message: "Gửi CV thành công!"
+    })
 }
