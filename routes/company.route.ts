@@ -32,4 +32,6 @@ router.delete("/job/delete/:id", authMiddleWare.verifyTokenCompany, companyContr
 
 router.get("/list", companyController.list)
 
+router.get("/detail/:id", companyController.detail)
+
 export default router

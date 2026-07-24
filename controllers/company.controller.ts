@@ -6,6 +6,7 @@ import { AccountRequest } from "../interface/request.interface"
 import { parse } from "node:path"
 import Job from "../models/job.model"
 import City from "../models/city.model"
+import { title } from "node:process"
 
 export const registerPost = async (req: Request, res: Response) => {
     const {companyName, email, password} = req.body
@@ -315,4 +316,68 @@ export const list = async(req: AccountRequest, res: Response) => {
         companyList: companyListFinal,
         totalPage: totalPage
     })
+}
+
+export const detail = async(req: Request, res: Response) => {
+    try {
+        const id = req.params.id
+        const record = await AccountCompany.findOne({
+            _id: id
+        })
+        if(!record){
+            res.json({
+                code: "error",
+                message: "Thất bại!"
+            })
+            return
+        }
+        const dataCompany = {
+            id: record.id,
+            logo: record.logo,
+            title: record.companyName,
+            address: record.address,
+            companyModel: record.companyModel,
+            companyEmployees: record.companyEmployees,
+            workingTime: record.workingTime,
+            workOvertime: record.workOvertime,
+            description: record.description
+        }
+        const city = await City.findOne({
+            _id: record.city
+        })
+        const jobList = await Job.find({
+            companyId: record.id
+        })
+        const dataJobList = []
+        for(const item of jobList){
+            const dataJob = {
+            id: item.id,
+            title: item.title,
+            companyLogo: record.logo,
+            companyName: record.companyName,
+            salaryMin: item.salaryMin,
+            salaryMax: item.salaryMax,
+            position: item.position,
+            workingForm: item.workingForm,
+            cityName: "",
+            technologies: item.technologies,
+
+            }
+            
+            dataJob.cityName = `${city?.name}`
+            dataJobList.push(dataJob)
+        }
+
+        res.json({
+            code: "success",
+            dataCompany: dataCompany,
+            dataJobList: dataJobList
+        })
+    } catch (error) {
+        console.log(error)
+        res.json({
+            code: "error",
+            message: "Thất bại!"
+        })
+    }
 }
