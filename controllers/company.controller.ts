@@ -7,6 +7,8 @@ import { parse } from "node:path"
 import Job from "../models/job.model"
 import City from "../models/city.model"
 import { title } from "node:process"
+import CV from "../models/cv.model"
+import { any } from "joi"
 
 export const registerPost = async (req: Request, res: Response) => {
     const {companyName, email, password} = req.body
@@ -380,4 +382,56 @@ export const detail = async(req: Request, res: Response) => {
             message: "Thất bại!"
         })
     }
+}
+
+export const cvList = async(req: AccountRequest, res: Response) => {
+    const companyId = req.account.id
+
+    const listJob = await Job.find({
+        companyId: companyId
+    })
+    const listJobId = listJob.map(item => item.id)
+    const cvList = await CV.find({
+        jobId: {$in: listJobId}
+    })
+    .sort({
+        createdAt: "desc"
+    })
+
+    const dataFinal = []
+    //hashmap
+    const jobHashmap: any = {}
+    for(const item of listJob){
+        jobHashmap[item.id] = item
+    }
+
+    for(const item of cvList){
+        const cvData = {
+            id: item.id,
+            jobTitle: "",
+            fullName: item.fullName,
+            email: item.email,
+            phone: item.phone,
+            salaryMin: "",
+            salaryMax: "",
+            position: "",
+            workingForm: "",
+            viewed: item.viewed,
+            status: item.status
+        }
+        const job = jobHashmap[`${item.jobId}`]
+        cvData.jobTitle = job.title
+        cvData.salaryMin = job.salaryMin
+        cvData.salaryMax = job.salaryMax
+        cvData.position = job.position
+        cvData.workingForm = job.workingForm
+        dataFinal.push(cvData)
+    }
+
+    res.json({
+        code: "success",
+        message: "Thành công!",
+        dataFinal: dataFinal
+    })
+
 }
