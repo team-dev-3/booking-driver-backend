@@ -36,4 +36,6 @@ router.get("/detail/:id", companyController.detail)
 
 router.get("/cv/list", authMiddleWare.verifyTokenCompany,companyController.cvList)
 
+router.get("/cv/detail/:id", authMiddleWare.verifyTokenCompany, companyController.detailCV)
+
 export default router

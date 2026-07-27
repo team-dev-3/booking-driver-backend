@@ -435,3 +435,68 @@ export const cvList = async(req: AccountRequest, res: Response) => {
     })
 
 }
+
+export const detailCV = async(req: AccountRequest, res: Response) => {
+    try {
+        const companyId = req.account.id
+        const cvId = req.params.id
+
+        const cvDetail = await CV.findOne({
+            _id: cvId
+        })
+        if(!cvDetail){
+            res.json({
+                code: "error",
+                message: "Thất bại!"
+            })
+            return
+        }
+        const dataCV = {
+            id: cvDetail.id,
+            fullName: cvDetail.fullName,
+            email: cvDetail.email,
+            phone: cvDetail.phone,
+            fileCV: cvDetail.fileCV
+        }
+
+        const jobDetail = await Job.findOne({
+            _id: cvDetail.jobId,
+            companyId: companyId,
+        })
+        if(!jobDetail){
+            res.json({
+                code: "error",
+                message: "Thất bại!"
+            })
+            return
+        }
+        const dataJob = {
+            id: jobDetail.id,
+            title: jobDetail.title,
+            salaryMin: jobDetail.salaryMin,
+            salaryMax: jobDetail.salaryMax,
+            position: jobDetail.position,
+            workingForm: jobDetail.workingForm,
+            technologies: jobDetail.technologies
+        }
+
+        await CV.updateOne({
+            _id: cvDetail.id
+        }, {
+            viewed: true
+        })
+
+        res.json({
+            code: "success",
+            message: "Thành công!",
+            dataCV: dataCV,
+            dataJob: dataJob
+        })
+    } catch (error) {
+        console.log(error),
+        res.json({
+            code: "error",
+            message: "Thất bại!"
+        })
+    }
+}
