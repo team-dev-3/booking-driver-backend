@@ -500,3 +500,48 @@ export const detailCV = async(req: AccountRequest, res: Response) => {
         })
     }
 }
+
+export const changeCVStatusPatch = async(req: AccountRequest, res: Response) => {
+    try {
+        const companyId = req.account.id
+        const {action, id} = req.body
+
+        const cvDetail = await CV.findOne({
+            _id: id
+        })
+        if(!cvDetail){
+            res.json({
+                code: "error",
+                message: "Thất bại!"
+            })
+            return
+        }
+        const company = await AccountCompany.findOne({
+            _id: companyId
+        })
+        if(!company){
+            res.json({
+                code: "error",
+                message: "Thất bại!"
+            })
+            return
+        }
+        await CV.updateOne({
+            _id: id
+        }, {
+            status: action
+        })
+
+        res.json({
+            code: "success",
+            message: "Thành công!"
+        })
+    } catch (error) {
+        console.log(error)
+        res.json({
+            code: "error",
+            message: "Thất bại!"
+        })
+    }
+
+}
