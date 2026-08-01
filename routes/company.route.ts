@@ -40,4 +40,6 @@ router.get("/cv/detail/:id", authMiddleWare.verifyTokenCompany, companyControlle
 
 router.patch("/cv/change-status", authMiddleWare.verifyTokenCompany, companyController.changeCVStatusPatch)
 
+router.delete("/cv/delete/:id", authMiddleWare.verifyTokenCompany, companyController.deleteCV)
+
 export default router

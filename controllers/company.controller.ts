@@ -516,10 +516,11 @@ export const changeCVStatusPatch = async(req: AccountRequest, res: Response) => 
             })
             return
         }
-        const company = await AccountCompany.findOne({
-            _id: companyId
+        const infoJob = await Job.findOne({
+            _id: cvDetail.jobId,
+            companyId: companyId
         })
-        if(!company){
+        if(!infoJob){
             res.json({
                 code: "error",
                 message: "Thất bại!"
@@ -544,4 +545,47 @@ export const changeCVStatusPatch = async(req: AccountRequest, res: Response) => 
         })
     }
 
+}
+
+export const deleteCV = async(req: AccountRequest, res: Response) => {
+    try {
+        const companyId = req.account.id
+        const cvId = req.params.id
+
+        const cvDeleted = await CV.findOne({
+            _id: cvId
+        })
+        if(!cvDeleted){
+            res.json({
+                code: "error",
+                message: "Thất bại!"
+            })
+            return
+        }
+
+        const infoJob = await Job.findOne({
+            _id: cvDeleted?.jobId,
+            companyId: companyId
+        })
+        if(!infoJob){
+            res.json({
+                code: "error",
+                message: "Thất bại!"
+            })
+            return
+        }
+        await CV.deleteOne({
+            _id: cvId
+        })
+        res.json({
+            code: "success",
+            message: "Xóa CV thành công!"
+        })
+    } catch (error) {
+        console.log(error)
+        res.json({
+            code: "error",
+            message: "Id không hợp lệ!"
+        })
+    }
 }
