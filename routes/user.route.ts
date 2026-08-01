@@ -17,4 +17,6 @@ router.post("/login", userValidate.loginPost, userController.LoginPost)
 
 router.patch("/profile", authMiddleware.verifyTokenUser as any, upload.single("avatar"), userValidate.profilePatch, userController.profilePatch)
 
+router.get("/cv/list", authMiddleware.verifyTokenUser, userController.cvList)
+
 export default router

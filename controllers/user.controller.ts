@@ -3,6 +3,9 @@ import AccountUser from "../models/account-user.modle"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { AccountRequest } from "../interface/request.interface"
+import CV from "../models/cv.model"
+import Job from "../models/job.model"
+import AccountCompany from "../models/account-company.model"
 
 
 export const RegisterPost = async (req: Request, res: Response) => {
@@ -101,5 +104,60 @@ export const profilePatch = async (req: AccountRequest, res: Response) => {
     res.json({
         code: "success",
         message: "Cập nhật thành công!"
+    })
+}
+
+export const cvList = async (req: AccountRequest, res: Response) => {
+    const userId = req.account.id
+    const infoUser = await AccountUser.findOne({
+        _id: userId
+    })
+    const cvList = await CV.find({
+        email: infoUser?.email
+    })
+    if(!cvList){
+        res.json({
+            code: "error",
+            message: "Thất bại!"
+        })
+        return
+    }
+    const jobList = await Job.find({})
+    const jobHashMap: any = {}
+    for(const item of jobList){
+        jobHashMap[item.id] = item
+    }
+
+    const companyList = await AccountCompany.find({})
+    const companyHashMap: any = {}
+    for(const item of companyList){
+        companyHashMap[item.id] = item
+    }
+
+    const dataCVList = []
+    for(const item of cvList){
+        const dataCV = {
+            id: item.id,
+            jobTitle: "",
+            companyName: "",
+            salaryMin: "",
+            salaryMax: "",
+            position: "",
+            workingForm: "",
+            status: item.status
+        }
+        dataCV.jobTitle = jobHashMap[`${item.jobId}`].title
+        dataCV.companyName = companyHashMap[jobHashMap[`${item.jobId}`].companyId].companyName
+        dataCV.salaryMin = jobHashMap[`${item.jobId}`].salaryMin
+        dataCV.salaryMax = jobHashMap[`${item.jobId}`].salaryMax
+        dataCV.position = jobHashMap[`${item.jobId}`].position
+        dataCV.workingForm = jobHashMap[`${item.jobId}`].workingForm
+
+        dataCVList.push(dataCV)
+    }
+    res.json({
+        code: "success",
+        message: "Thành công!",
+        dataFinal: dataCVList
     })
 }
