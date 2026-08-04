@@ -146,12 +146,12 @@ export const cvList = async (req: AccountRequest, res: Response) => {
             workingForm: "",
             status: item.status
         }
-        dataCV.jobTitle = jobHashMap[`${item.jobId}`].title
-        dataCV.companyName = companyHashMap[jobHashMap[`${item.jobId}`].companyId].companyName
-        dataCV.salaryMin = jobHashMap[`${item.jobId}`].salaryMin
-        dataCV.salaryMax = jobHashMap[`${item.jobId}`].salaryMax
-        dataCV.position = jobHashMap[`${item.jobId}`].position
-        dataCV.workingForm = jobHashMap[`${item.jobId}`].workingForm
+        dataCV.jobTitle = jobHashMap[`${item.jobId}`]?.title
+        dataCV.companyName = companyHashMap[jobHashMap[`${item.jobId}`]?.companyId]?.companyName
+        dataCV.salaryMin = jobHashMap[`${item.jobId}`]?.salaryMin
+        dataCV.salaryMax = jobHashMap[`${item.jobId}`]?.salaryMax
+        dataCV.position = jobHashMap[`${item.jobId}`]?.position
+        dataCV.workingForm = jobHashMap[`${item.jobId}`]?.workingForm
 
         dataCVList.push(dataCV)
     }
