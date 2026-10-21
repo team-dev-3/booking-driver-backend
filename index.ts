@@ -1,6 +1,9 @@
 import express from "express"
 import cors from "cors"
-import routes from "./routes/index.route"
+import customerRoutes from "./routes/customer/index.route"
+import adminRoutes from "./routes/admin/index.route"
+import authRoutes from "./routes/auth.route"
+import {pathAdmin} from "./config/variable"
 import dotenv from "dotenv"
 import { connectDB } from "./config/database"
 import cookieParser from "cookie-parser"
@@ -29,7 +32,9 @@ app.use(express.json())
 app.use(cookieParser())
 
 //thiết lập đường dẫn
-app.use("/", routes)
+app.use("/customer", customerRoutes)
+app.use(`/${pathAdmin}`, adminRoutes)
+app.use('/auth', authRoutes)
 
 app.listen(port, () => {
     console.log(`website đang chạy trên cổng ${port}`)

@@ -12,13 +12,19 @@ export const registerPost = (req: Request, res: Response, next: NextFunction) =>
         "string.min": "Họ tên phải có ít nhất 5 ký tự!",
         "string.max": "Họ tên không được vượt quá 50 ký tự!"
       }),
-    email: Joi.string()
-      .required()
-      .email()
-      .messages({
-        "string.empty": "Vui lòng nhập email của bạn!",
-        "string.email": "Email không đúng định dạng!"
-      }),
+    
+    phoneNumber: Joi.string()
+    .required()
+    .custom((value, helpers) => {
+        if (!/(84|0[3|5|7|8|9])+([0-9]{8})\b/g.test(value)) {
+        return helpers.error("phone.invalid"); // Định dạng số điện thoại Việt Nam
+        }
+        return value;
+    })
+    .messages({
+        "string.empty": "Vui lòng nhập số điện thoại!",
+        "phone.invalid": "Số điện thoại không đúng định dạng!"
+    }),
     password: Joi.string()
       .required()
       .min(8) // Ít nhất 8 ký tự
@@ -64,12 +70,17 @@ export const registerPost = (req: Request, res: Response, next: NextFunction) =>
 
 export const loginPost = (req: Request, res: Response, next: NextFunction) => {
   const schema = Joi.object({
-    email: Joi.string()
+    phoneNumber: Joi.string()
     .required()
-    .email()
+    .custom((value, helpers) => {
+        if (!/(84|0[3|5|7|8|9])+([0-9]{8})\b/g.test(value)) {
+        return helpers.error("phone.invalid"); // Định dạng số điện thoại Việt Nam
+        }
+        return value;
+    })
     .messages({
-      "string.empty": "Vui lòng nhập email của bạn!",
-      "string.email": "Email không đúng định dạng!"
+        "string.empty": "Vui lòng nhập số điện thoại!",
+        "phone.invalid": "Số điện thoại không đúng định dạng!"
     }),
     password: Joi.string()
     .required()
@@ -105,32 +116,6 @@ export const loginPost = (req: Request, res: Response, next: NextFunction) => {
 
     res.json({
       code: "error",
-      message: errorMessage
-    });
-    return;
-  }
-
-  next();
-}
-
-export const profilePatch = (req: Request, res: Response, next: NextFunction) => {
-  const schema = Joi.object({
-    fullName: Joi.string()
-      .required()
-      .min(5)
-      .max(50),
-    email: Joi.string()
-      .required()
-      .email(),
-  }).options({ allowUnknown: true }) // cho phép các field khác như avatar (do Multer xử lý)
-
-  const { error } = schema.validate(req.body);
-
-  if(error) {
-    const errorMessage = error.details[0].message;
-
-    res.json({
-      code: "validation_error",
       message: errorMessage
     });
     return;

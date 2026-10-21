@@ -1,0 +1,183 @@
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// =========================================================
+// 1. CÁC ENUM HỆ THỐNG & ĐẶT XE
+// =========================================================
+
+enum UserRole {
+  CUSTOMER
+  DRIVER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum ServiceType {
+  SHARED_RIDE
+  CHARTER_ONE_WAY
+  CHARTER_ROUND_TRIP
+  CHARTER_TIME_8H
+  CHARTER_TIME_12H
+  PARCEL
+}
+
+enum PaymentMethod {
+  APP_ONLINE
+  CASH
+  DRIVER_TRANSFER
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  FINDING_DRIVER
+  DRIVER_ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// =========================================================
+// 2. NGƯỜI DÙNG & HỒ SƠ
+// =========================================================
+
+model User {
+  id           BigInt     @id @default(autoincrement())
+  phoneNumber  String     @unique @map("phone_number") @db.VarChar(20)
+  email        String?    @unique @db.VarChar(100)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  role         UserRole   @default(CUSTOMER)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  customerProfile      CustomerProfile?
+  adminProfile         AdminProfile? 
+  adminCreatedBookings Booking[]        @relation("AdminCreatedBookings")
+
+  @@map("users")
+}
+
+model CustomerProfile {
+  userId    BigInt   @id @map("user_id")
+  fullName  String   @map("full_name") @db.VarChar(100)
+  avatarUrl String?  @map("avatar_url") @db.VarChar(255)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@map("customer_profiles")
+}
+
+model AdminProfile {
+  userId    BigInt   @id @map("user_id")
+  fullName  String   @map("full_name") @db.VarChar(100)
+  avatarUrl String?  @map("avatar_url") @db.VarChar(255)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_profiles")
+}
+
+// =========================================================
+// 3. TUYẾN ĐƯỜNG, XE & LỊCH TRÌNH
+// =========================================================
+
+model Route {
+  id           BigInt          @id @default(autoincrement())
+  routeCode    String          @unique @map("route_code") @db.VarChar(30)
+  routeName    String          @map("route_name") @db.VarChar(150)
+  isFixedRoute Boolean         @default(true) @map("is_fixed_route")
+
+  schedules FixedSchedule[]
+
+  @@map("routes")
+}
+
+model Vehicle {
+  id           BigInt          @id @default(autoincrement())
+  licensePlate String          @unique @map("license_plate") @db.VarChar(20)
+  vehicleType  String          @map("vehicle_type")
+  seatCapacity Int             @map("seat_capacity")
+  brandModel   String?         @map("brand_model") @db.VarChar(100)
+
+  schedules FixedSchedule[]
+
+  @@map("vehicles")
+}
+
+model FixedSchedule {
+  id                   BigInt    @id @default(autoincrement())
+  scheduleCode         String    @unique @map("schedule_code") @db.VarChar(30)
+  routeId              BigInt    @map("route_id")
+  vehicleId            BigInt    @map("vehicle_id")
+  driverId             BigInt?   @map("driver_id")
+  departureTime        DateTime  @map("departure_time")
+  estimatedArrivalTime DateTime? @map("estimated_arrival_time")
+  totalSeats           Int       @map("total_seats")
+  availableSeats       Int       @map("available_seats")
+  status               String    @default("SCHEDULED")
+
+  route    Route     @relation(fields: [routeId], references: [id])
+  vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
+  bookings Booking[]
+
+  @@map("fixed_schedules")
+}
+
+// =========================================================
+// 4. ĐƠN ĐẶT XE
+// =========================================================
+
+model Booking {
+  id                  BigInt        @id @default(autoincrement())
+  bookingCode         String        @unique @map("booking_code") @db.VarChar(20)
+  fixedScheduleId     BigInt        @map("fixed_schedule_id")
+  customerId          BigInt        @map("customer_id")
+  createdByAdminId    BigInt?       @map("created_by_admin_id")
+  handledDriverId     BigInt?       @map("handled_driver_id")
+
+  serviceType         ServiceType   @default(SHARED_RIDE) @map("service_type")
+  seatCount           Int           @default(1) @map("seat_count")
+
+  passengerName       String        @map("passenger_name") @db.VarChar(100)
+  passengerPhone      String        @map("passenger_phone") @db.VarChar(20)
+  pickupAddress       String        @map("pickup_address") @db.VarChar(255)
+  dropoffAddress      String        @map("dropoff_address") @db.VarChar(255)
+  isHighway           Boolean       @default(false) @map("is_highway")
+  isCoastalSurcharge  Boolean       @default(false) @map("is_coastal_surcharge")
+
+  baseFare            Decimal       @map("base_fare") @db.Decimal(15, 2)
+  fee7Seater          Decimal       @default(0.00) @map("fee_7_seater") @db.Decimal(15, 2)
+  feeHighway          Decimal       @default(0.00) @map("fee_highway") @db.Decimal(15, 2)
+  feeCoastal          Decimal       @default(0.00) @map("fee_coastal") @db.Decimal(15, 2)
+  totalFare           Decimal       @map("total_fare") @db.Decimal(15, 2)
+  roomPoints          Decimal       @default(0.00) @map("room_points") @db.Decimal(5, 2)
+
+  paymentMethod       PaymentMethod @default(CASH) @map("payment_method")
+  status              BookingStatus @default(FINDING_DRIVER)
+  customerNote        String?       @map("customer_note") @db.Text
+
+  cancelReason        String?       @map("cancel_reason") @db.VarChar(500)
+  isDriverFaultCancel Boolean       @default(false) @map("is_driver_fault_cancel")
+  cancellationFee     Decimal       @default(0.00) @map("cancellation_fee") @db.Decimal(15, 2)
+
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+
+  schedule       FixedSchedule   @relation(fields: [fixedScheduleId], references: [id])
+  customer       CustomerProfile @relation(fields: [customerId], references: [userId])
+  createdByAdmin User?           @relation("AdminCreatedBookings", fields: [createdByAdminId], references: [id])
+
+  @@map("bookings")
+}
